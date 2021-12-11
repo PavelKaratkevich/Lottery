@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strings"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -23,11 +25,18 @@ func (l LotteryRepositoryDb) BuyLottery(request domain.Request) (*domain.Respons
 		if error == sql.ErrNoRows {
 			res, err := l.client.Exec("INSERT INTO Lottery (first_name, last_name, id_number) VALUES (?, ?, ?)", request.First_name, request.Last_name, request.Id_number)
 				if err != nil {
+					if strings.Contains(err.Error(), "Error 1644") {
+							return nil, &domain.Error{
+							Code:    http.StatusGone,
+							Message: "Tickets were sold out",
+						}
+				} else {
 					return nil, &domain.Error{
-						Code:    http.StatusForbidden,
+						Code:    http.StatusInternalServerError,
 						Message: "Unknown server error",
 					}
 				}
+			}
 // Getting the last inserted ticket ID				
 			insertID, err1 := res.LastInsertId()
 				if err1 != nil {
@@ -38,7 +47,7 @@ func (l LotteryRepositoryDb) BuyLottery(request domain.Request) (*domain.Respons
 				}
 			output = domain.Response{Ticket_id: int(insertID)}
 		} else {
-// If holder if ticket was identified, we send to him/her the notification			
+// If holder of ticket was identified, we send to him/her the notification			
 			return nil, &domain.Error{
 				Code:    http.StatusForbidden,
 				Message: fmt.Sprintf("The user with ID Number %v already purchased a ticket", existingCustomer.Id_number),
