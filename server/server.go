@@ -1,0 +1,54 @@
+package server
+
+import (
+	"Lottery/domain"
+	"database/sql"
+	"fmt"
+	"net/http"
+	"github.com/jmoiron/sqlx"
+)
+
+type LotteryRepositoryDb struct {
+	client *sqlx.DB
+}
+
+func (l LotteryRepositoryDb) BuyLottery(request domain.Request) (*domain.Response, *domain.Error) {
+// Creating struct for a Response	
+	var output domain.Response
+// Creating struct for an existing ticket holder	
+	var existingCustomer domain.ExistingCustomer
+// Checking if the ticket was already purchased by the ID holder	
+	error := l.client.Get(&existingCustomer, "Select first_name, last_name, id_number from Lottery where id_number = ?", request.Id_number)
+// If no ticket holder with such ID were identified, then we invoke a INSERT function		
+		if error == sql.ErrNoRows {
+			res, err := l.client.Exec("INSERT INTO Lottery (first_name, last_name, id_number) VALUES (?, ?, ?)", request.First_name, request.Last_name, request.Id_number)
+				if err != nil {
+					return nil, &domain.Error{
+						Code:    http.StatusForbidden,
+						Message: "Unknown server error",
+					}
+				}
+// Getting the last inserted ticket ID				
+			insertID, err1 := res.LastInsertId()
+				if err1 != nil {
+					return nil, &domain.Error{
+						Code:    http.StatusInternalServerError,
+						Message: "Error while retrieving ID of a purchased ticket",
+					}
+				}
+			output = domain.Response{Ticket_id: int(insertID)}
+		} else {
+// If holder if ticket was identified, we send to him/her the notification			
+			return nil, &domain.Error{
+				Code:    http.StatusForbidden,
+				Message: fmt.Sprintf("The user with ID Number %v already purchased a ticket", existingCustomer.Id_number),
+			}
+		}
+	return &output, nil
+}
+
+func NewLotteryRepositoryDb(dbClient *sqlx.DB) LotteryRepositoryDb {
+	return LotteryRepositoryDb{
+		dbClient,
+	}
+}
