@@ -20,8 +20,3 @@ END
 $$
 
 DELIMITER ;
-
-
-
-insert into Lottery (first_name, last_name, id_number)
-values ('Pavel', 'Karatkevich', 'HB2979825')
