@@ -41,13 +41,15 @@ func (l LotteryRepositoryDb) BuyLotteryTicket(ctx context.Context, req *lotteryp
 	switch {
 	case error == sql.ErrNoRows:
 		res, err := l.client.Exec("INSERT INTO Lottery (first_name, last_name, id_number) VALUES (?, ?, ?)", req.FirstName, req.LastName, req.IdNumber)
-		if err != nil {
-			if strings.Contains(err.Error(), "Error 1644") {
-				return nil, status.Errorf(codes.ResourceExhausted, "Tickets were sold out")
-			} else {
-				return nil, status.Errorf(codes.Internal, "Unknown server error")
+			switch {
+			case err != nil:
+				switch {
+				case strings.Contains(err.Error(), "Error 1644"):
+					return nil, status.Errorf(codes.ResourceExhausted, "Tickets were sold out")
+				default:
+					return nil, status.Errorf(codes.Internal, "Unknown server error")
+				}
 			}
-		}
 		insertID, err1 := res.LastInsertId()
 		if err1 != nil {
 			return nil, status.Errorf(codes.Internal, "Error while retrieving ID of a purchased ticket")
