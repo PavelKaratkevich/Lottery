@@ -20,3 +20,8 @@ END
 $$
 
 DELIMITER ;
+
+
+
+
+protoc Lottery/lotterypb/lottery.proto --go_out=plugins=grpc:.

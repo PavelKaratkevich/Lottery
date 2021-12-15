@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package lottery;
+
+option go_package = "/lottery/lotterypb";
+
+message Request {
+	string First_name = 1;
+	string Last_name = 2;
+	string Id_number = 3;
+}
+
+message Response  {
+	int32 Ticket_id = 1;
+}
+
+message Error {
+	int32 Code = 1; 
+	string Message = 2; 
+}
+
+message ExistingCustomer  {
+	string First_name = 1;
+	string Last_name = 2;
+	string Id_number = 3;
+}
+
+service LotteryService {
+    rpc BuyLotteryTicket(Request) returns(Response){};  
+}

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"Lottery/app"
+	// "Lottery/app"
 )
 
 func main() {
-	app.StartLottery()
+	// app.StartLottery()
 }
