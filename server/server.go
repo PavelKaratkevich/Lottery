@@ -32,16 +32,14 @@ func main() {
 
 func (l LotteryRepositoryDb) BuyLotteryTicket(ctx context.Context, req *lotterypb.Request) (*lotterypb.Response, error) {
 	var output lotterypb.Response
-
-	// log.Printf("BuyLotteryTicket has been invoked with request: %v", req)
-
-	var existingCustomer lotterypb.ExistingCustomer
+	var ExistingCustomer lotterypb.ExistingCustomer
 	if req.FirstName == "" || req.LastName == "" || req.IdNumber == "" {
 		return nil, status.Errorf(codes.Internal, "All fields must be filled in")
 	}
-
-	error := l.client.Get(&existingCustomer, "Select first_name, last_name, id_number from Lottery where id_number = ?", req.IdNumber)
-	if error == sql.ErrNoRows {
+	error := l.client.Get(&ExistingCustomer, "Select first_name, last_name, id_number from Lottery where id_number = ?", req.IdNumber)
+	log.Printf("Error: %v", error)
+	switch {
+	case error == sql.ErrNoRows:
 		res, err := l.client.Exec("INSERT INTO Lottery (first_name, last_name, id_number) VALUES (?, ?, ?)", req.FirstName, req.LastName, req.IdNumber)
 		if err != nil {
 			if strings.Contains(err.Error(), "Error 1644") {
@@ -55,8 +53,10 @@ func (l LotteryRepositoryDb) BuyLotteryTicket(ctx context.Context, req *lotteryp
 			return nil, status.Errorf(codes.Internal, "Error while retrieving ID of a purchased ticket")
 		}
 		output = lotterypb.Response{TicketId: int32(insertID)}
-	} else  {
-		return nil, status.Errorf(codes.AlreadyExists, "The user with ID Number %v already purchased a ticket", existingCustomer.IdNumber)
+	case error == nil:
+		return nil, status.Errorf(codes.AlreadyExists, fmt.Sprintf("The user with ID Number %v already purchased a ticket", ExistingCustomer.IdNumber))
+	case strings.Contains(error.Error(), "Error 1146"):
+		return nil, status.Errorf(codes.Internal, "The table not found")
 	}
 	return &output, nil
 }
