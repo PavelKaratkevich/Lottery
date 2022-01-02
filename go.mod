@@ -1,5 +1,7 @@
 module Lottery
 
+// conventionally the module name is not capitalized
+
 go 1.17
 
 require (

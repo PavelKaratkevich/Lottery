@@ -1,1 +1,31 @@
 .env
+
+# Dan - I could definitely recommend googling and using existing .gitignore files at least as a reference
+# for all you projects.
+# This one is a pretty good and canonical collection by GitHub - https://github.com/github/gitignore
+# Below is what I would have in .gitignore:
+
+
+# Binaries for programs and plugins
+# Dan - it's particularly important to avoid pushing binaries to the repo because they take quite a lot of space and are
+# disposable since you can build them again at any moment.
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories (remove the comment below to include it)
+vendor/
+
+# Go workspace file
+go.work
+
+# Intellij
+.idea
