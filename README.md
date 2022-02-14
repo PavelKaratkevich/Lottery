@@ -2,7 +2,8 @@
 ## This is a test assignment that a company my friend works for uses in order to assess the level of Go candidates. Being curious to give it a try, I've decided to write my iwn solution to the task described hereunder:
 
 ##Here is the tasks:
-###Problem
+
+#Problem
 
 Imagine a popular free national e-lottery website. In order to take a part in the lottery, users should request a lottery ticket using a button. 
 
